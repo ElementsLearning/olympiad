@@ -1,22 +1,31 @@
 import connectMongo from "@/lib/connectMongo";
-import Question from "@/models/QuestionModel";
+import Category from "@/models/CategoryModel";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   
-  const { question } = await request.json();
+  const { category: categoryName, subcategory } = await request.json();
 
   try {
 
     await connectMongo()
 
-    const newQuestion = await Question.create({ ...question })
-    newQuestion.save()
+    const category = await Category.find({name: categoryName})
 
-    return NextResponse.json({ question: newQuestion });
+    if (!category) {
+      return NextResponse.json({ error: "Cant Find Category" });
+    }
+
+    const newCategory = await Category.findOneAndUpdate(
+      { name: categoryName },
+      { $push: { subcategories: subcategory } },
+      { new: true }
+    ).exec()
+
+    return NextResponse.json({ category: newCategory });
 
   } catch (error) {
     console.log(error);
-    return NextResponse.json({ error: "Cant Add Question" });
+    return NextResponse.json({ error: "Cant Add Subcategory" });
   }
 }
