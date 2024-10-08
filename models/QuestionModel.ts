@@ -30,7 +30,7 @@ const QuestionSchema = new mongoose.Schema({
     required: true,
   },
   subcategory: {
-    type: String,
+    type: [String],
     required: true,
   },
   class: {
