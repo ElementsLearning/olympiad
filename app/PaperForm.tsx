@@ -4,8 +4,8 @@ import { FormInput } from "@/components/formComponents/FormInput"
 import { LabeledSelect } from "@/components/formComponents/LabeledSelect"
 import { Button } from "@/components/ui/button"
 import { useCategories } from "@/lib/hooks/useCategories"
-import { generateQuestions } from "@/lib/utils"
-import { useEffect, useState } from "react"
+import { generateQuestions, getAllBucketCounts } from "@/lib/utils"
+import { useEffect, useMemo, useState } from "react"
 
 const Group: React.FC<{children: React.ReactNode}> = ({children}) => {
   return (
@@ -25,10 +25,15 @@ export const PaperForm: React.FC<PaperFormProps> = ({Questions, setFilteredQuest
   const [Categories, setCategories] = useCategories()
   const [remainingCategories, setRemainingCategories] = useState(Categories)
 
+  
   const [Paper, setPaper] = useState({
     level: "",
     paperQuestions: [{count: 0, category: "", subcategory: ""}]
   })
+
+  const counts = useMemo(() => {
+    return getAllBucketCounts(Questions, Categories, Paper.level)
+  }, [Questions, Categories, Paper.level])
 
   useEffect(() => {
     const remaining = JSON.parse(JSON.stringify(Categories))
@@ -52,11 +57,15 @@ export const PaperForm: React.FC<PaperFormProps> = ({Questions, setFilteredQuest
         <Group key={index}>
           <LabeledSelect label="Category" options={Object.keys(Categories)} allowedOptions={Object.keys(remainingCategories)} value={question.category} onChange={v => setPaper({...Paper, paperQuestions: Paper.paperQuestions.map((q, i) => i === index ? {...q, category: v, subcategory: ""} : q)})} />
           <LabeledSelect label="Subcategory" options={Categories[question.category] || []} allowedOptions={remainingCategories[question.category] || []} value={question.subcategory} onChange={v => setPaper({...Paper, paperQuestions: Paper.paperQuestions.map((q, i) => i === index ? {...q, subcategory: v} : q)})} />
-          <FormInput
-            label="Count"
-            value={question.count === 0 ? "" : question.count.toString()}
-            setValue={v => setPaper({...Paper, paperQuestions: Paper.paperQuestions.map((q, i) => i === index ? {...q, count: parseInt(v) || 0} : q)})}
-          />
+          <div className="flex gap-2 items-center">
+            <FormInput
+              label="Count"
+              value={question.count === 0 ? "" : question.count.toString()}
+              setValue={v => setPaper({...Paper, paperQuestions: Paper.paperQuestions.map((q, i) => i === index ? {...q, count: parseInt(v) || 0} : q)})}
+            />
+            {counts && question.category && question.subcategory &&
+            <p>{`/ ${counts[question.category][question.subcategory] || 0}`}</p>}
+          </div>
         </Group>
       ))}  
       <FormButton onClick={() => setPaper({...Paper, paperQuestions: [...Paper.paperQuestions, {count: 0, category: "", subcategory: ""} ]})} text="Add Question Set" />

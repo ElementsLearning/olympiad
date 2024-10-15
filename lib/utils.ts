@@ -60,3 +60,27 @@ export const generateQuestions = (allQuestions: QuestionType[], level: string, b
 
   return toReturn
 }
+
+export const getAllBucketCounts = (allQuestions: QuestionType[], Categories: Record<string, string[]>, level: string): Record<string, Record<string, number>> => {
+
+  const levelQuestions = allQuestions.filter(q => q.level === level)
+
+  const toReturn = levelQuestions.reduce((acc: Record<string, Record<string, number>>, question) => {
+    const { category, subcategory } = question
+
+    if (!acc[category]) {
+      acc[category] = {}
+    } 
+
+    for (const sub of subcategory) {
+      if (!acc[category][sub]) {
+        acc[category][sub] = 0
+      }
+      acc[category][sub]++
+    }
+
+    return acc
+  }, {})
+
+  return toReturn
+}
