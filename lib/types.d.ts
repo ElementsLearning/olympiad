@@ -1,4 +1,5 @@
 type QuestionTextType = {
+  _id?: string
   bookName: string
   chapter: string
   exercise: string
@@ -10,7 +11,7 @@ type QuestionTextType = {
 
 type CategoryType = {
   category: string
-  subcategories: string[]
+  subcategory: string[]
 }
 
 type QuestionType = QuestionTextType & CategoryType
