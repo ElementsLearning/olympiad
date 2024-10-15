@@ -78,7 +78,7 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({Question=defaultQuest
       </Group>
       <LabeledSelect label="Category" options={Object.keys(Categories)} value={category} onChange={(value) => setQuestion({ ...Question, category: value, subcategory: [""] })} />
       {subcategory.map((sub, i) =>
-        <div className="flex gap-2 items-center">
+        <div key={i} className="flex gap-2 items-center">
           <Button variant={"ghost"} size={"icon"} className="size-6 p-1"
           onClick={() => setQuestion({ ...Question, subcategory: subcategory.filter((_, index) => index !== i) })}>
             <XIcon className=""/>
