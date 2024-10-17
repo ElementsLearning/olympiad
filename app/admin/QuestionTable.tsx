@@ -1,56 +1,59 @@
+import { OptionsPopover } from "@/components/OptionsPopover"
 import { Button } from "@/components/ui/button"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { MoreHorizontal, Trash } from "lucide-react"
-import { EditModal } from "./EditModal"
-import { useEffect, useState } from "react"
+import { headers } from "@/lib/constants"
+import { useQuestions } from "@/lib/hooks/useQuestions"
+import { ArrowDownAZ, ArrowUpAZ, Equal, EqualSquare } from "lucide-react"
+import React, { useEffect, useState } from "react"
 
 type QuestionTableProps = {
-  questions: QuestionType[]
-  setQuestions: React.Dispatch<React.SetStateAction<QuestionType[]>>
   Categories: Record<string, string[]>
+  filterWord: string
 }
 
-const headers = [
-  "Book Name",
-  "Chapter",
-  "Exercise",
-  "Question Number",
-  "Level",
-  "Question Type",
-  "Class",
-  "Category",
-  "Subcategories",
-]
+const QuestionTableComponent: React.FC<QuestionTableProps> = ({Categories, filterWord}) => {
 
-type OptionsPopoverProps = {
-  Question: QuestionType
-  onDelete: () => void
-  onEdit: (Question: QuestionType) => void
-  Categories: Record<string, string[]>
-}
+  const [questions, setQuestions] = useQuestions()
+  const [filteredQuestions, setFilteredQuestions] = useState<QuestionType[]>([])
+  const [sortKey, setSortKey] = useState<keyof QuestionType | "">("")
+  const [sortDirection, setSortDirection] = useState(1)
 
-const OptionsPopover: React.FC<OptionsPopoverProps> = ({onDelete, onEdit, Question, Categories}) => {
-  
-  const [popoverOpen, setPopoverOpen] = useState(false)
-  
-  return (
-    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-      <PopoverTrigger asChild>
-        <Button variant={"ghost"} size={"icon"}>
-          <MoreHorizontal className="size-4"/>
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="flex w-fit p-0">
-        <EditModal Categories={Categories} Question={Question} onEdit={(question) => {onEdit(question); setPopoverOpen(false)}} />
-        <Button onClick={() => {onDelete(); setPopoverOpen(false)}} className="rounded-none" variant={"destructive"} size={"icon"}><Trash className="size-4" /></Button>
-      </PopoverContent>
-    </Popover>
-  )
-}
+  const filterQuestions = (q: QuestionType[], word: string) => {
+    return q.filter((q) => 
+      q.bookName.toLowerCase().includes(word.toLowerCase()) ||
+      q.chapter.toLowerCase().includes(word.toLowerCase()) ||
+      q.exercise.toLowerCase().includes(word.toLowerCase()) ||
+      q.questionNumber.toLowerCase().includes(word.toLowerCase()) ||
+      q.level.toLowerCase().includes(word.toLowerCase()) ||
+      q.questionType.toLowerCase().includes(word.toLowerCase()) ||
+      q.class.toLowerCase().includes(word.toLowerCase()) ||
+      q.category.toLowerCase().includes(word.toLowerCase()) ||
+      q.subcategory.join(", ").toLowerCase().includes(word.toLowerCase())
+    )
+  }
 
-export const QuestionTable: React.FC<QuestionTableProps> = ({questions, setQuestions, Categories}) => {
+  useEffect(() => {
+    if (filterWord) {
+      setFilteredQuestions(filterQuestions(questions, filterWord))
+    } else {
+      setFilteredQuestions(questions)
+    }
+  }, [filterWord, questions])
+
+  useEffect(() => {
+
+    if (sortKey === '_id') return;
+
+    if (sortKey === 'subcategory') {
+      setFilteredQuestions([...filteredQuestions].sort((a, b) => sortDirection * a[sortKey].join(",").localeCompare(b[sortKey].join(","))))
+    } else if (sortKey) {
+      setFilteredQuestions([...filteredQuestions].sort((a, b) => sortDirection * a[sortKey].localeCompare(b[sortKey])))
+    } else {
+      setFilteredQuestions(filterQuestions(questions, filterWord))
+    }
+  }, [questions, sortKey, sortDirection])
+
   const deleteQuestion = async (id: string) => {
     const { question } = await (await fetch("/api/question/delete", {
       method: "POST",
@@ -65,31 +68,19 @@ export const QuestionTable: React.FC<QuestionTableProps> = ({questions, setQuest
     }
   }
 
-  // const [filteredQuestions, setFilteredQuestions] = useState(questions)
-
-  // useEffect(() => {
-
-  //   const setNewFilter = (word: string) => {
-
-  //     if (!word) {
-  //       setFilteredQuestions(questions)
-  //       return
-  //     }
-
-  //     setFilteredQuestions(questions.filter(q => (
-  //       q.bookName.toLowerCase().includes(word.toLowerCase()) ||
-  //       q.chapter.toLowerCase().includes(word.toLowerCase()) ||
-  //       q.exercise.toLowerCase().includes(word.toLowerCase()) ||
-  //       q.questionNumber.toLowerCase().includes(word.toLowerCase()) ||
-  //       q.level.toLowerCase().includes(word.toLowerCase()) ||
-  //       q.questionType.toLowerCase().includes(word.toLowerCase()) ||
-  //       q.class.toLowerCase().includes(word.toLowerCase()) ||
-  //       q.category.toLowerCase().includes(word.toLowerCase()) ||
-  //       q.subcategory.join(", ").toLowerCase().includes(word.toLowerCase())
-  //     )))
-  //   }
-  //   setNewFilter(filteredWord)
-  // }, [filteredWord, questions])
+  const pressKey = (key: keyof QuestionType) => {
+    if (key === sortKey) {
+      if (sortDirection === 1) {
+        setSortDirection(-1);
+      } else {
+        setSortKey("")
+        setSortDirection(1)
+      }
+    } else {
+      setSortKey(key)
+      setSortDirection(1)
+    }
+  }
   
   return (
     <ScrollArea className="h-[calc(100vh-82px)]">
@@ -97,13 +88,28 @@ export const QuestionTable: React.FC<QuestionTableProps> = ({questions, setQuest
         <TableCaption>List of All Questions</TableCaption>
         <TableHeader>
           <TableRow>
-            {headers.map((header, i) => <TableHead key={i}>{header}</TableHead>)}
+            <TableHead>ID</TableHead>
+            {Object.keys(headers).map((header, i) => 
+            <TableHead key={i}>
+              <div className="flex gap-2 items-center">
+                <p>{header}</p>
+                <button onClick={() => pressKey(headers[header])} className="bg-transparent hover:bg-white/10 p-1 rounded-md">
+                  {sortKey === headers[header] ?
+                    sortDirection === 1 ?
+                    <ArrowDownAZ className="size-4"/> :
+                    <ArrowUpAZ className="size-4"/> :
+                    <EqualSquare className="size-4"/>
+                  }
+                </button>
+              </div>
+            </TableHead>)}
             <TableHead>Options</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
-          {questions.map((question, i) => (
+        {Categories && filteredQuestions && <TableBody>
+          {filteredQuestions.map((question, i) => (
             <TableRow key={question._id || i}>
+              <TableCell>{i+1}</TableCell>
               <TableCell>{question.bookName}</TableCell>
               <TableCell>{question.chapter}</TableCell>
               <TableCell>{question.exercise}</TableCell>
@@ -113,11 +119,20 @@ export const QuestionTable: React.FC<QuestionTableProps> = ({questions, setQuest
               <TableCell>{question.class}</TableCell>
               <TableCell>{question.category}</TableCell>
               <TableCell>{question.subcategory.join(", ")}</TableCell>
-              <TableCell><OptionsPopover Categories={Categories} Question={question} onEdit={(Question) => setQuestions(questions.map(q => q._id === Question._id ? Question : q))} onDelete={() => deleteQuestion(question._id!)}/></TableCell>
+              <TableCell>
+                <OptionsPopover 
+                  Categories={Categories} 
+                  Question={question} 
+                  onEdit={(Question) => setQuestions(questions.map(q => q._id === Question._id ? Question : q))} 
+                  onDelete={() => deleteQuestion(question._id!)}
+                  />
+              </TableCell>
             </TableRow>
           ))}
-        </TableBody>
+        </TableBody>}
       </Table>
     </ScrollArea>
   )
 }
+
+export const QuestionTable = React.memo(QuestionTableComponent)

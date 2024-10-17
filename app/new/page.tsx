@@ -1,7 +1,7 @@
 "use client"
 import { defaultQuestion } from "@/lib/constants";
 import { useState } from "react";
-import { QuestionForm } from "./QuestionForm";
+import { QuestionForm } from "@/components/QuestionForm";
 import { useCategories } from "@/lib/hooks/useCategories";
 
 

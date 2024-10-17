@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { Edit } from "lucide-react"
 import { useEffect, useState } from "react"
-import { QuestionForm } from "../new/QuestionForm"
+import { QuestionForm } from "@/components/QuestionForm"
 
 type EditModalProps = {
   Question: QuestionType

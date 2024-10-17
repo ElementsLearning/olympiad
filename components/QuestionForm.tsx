@@ -1,4 +1,4 @@
-import { defaultQuestion } from "@/lib/constants"
+import { CLASSES, defaultQuestion, LEVELS, QUESTION_TYPES } from "@/lib/constants"
 import { isQuestionComplete } from "@/lib/utils"
 import { useEffect, useState } from "react"
 import { FormButton } from "@/components/formComponents/FormButton";
@@ -6,14 +6,7 @@ import { FormInput } from "@/components/formComponents/FormInput";
 import { LabeledSelect } from "@/components/formComponents/LabeledSelect";
 import { Button } from "@/components/ui/button";
 import { XIcon } from "lucide-react";
-
-const Group: React.FC<{children: React.ReactNode}> = ({children}) => {
-  return (
-    <div className="flex gap-2 flex-col sm:flex-row">
-      {children}
-    </div>
-  )
-}
+import { Group } from "@/components/Group";
 
 type QuestionFormProps = {
   Question?: QuestionType
@@ -70,11 +63,11 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({Question=defaultQuest
       </Group>
       <Group>
         <FormInput label="Question Number" value={questionNumber} setValue={(value) => setQuestion({ ...Question, questionNumber: value })} />
-        <FormInput label="Question Type" value={questionType} setValue={(value) => setQuestion({ ...Question, questionType: value })} />
+        <LabeledSelect label="Type" options={QUESTION_TYPES} value={questionType} onChange={(value) => setQuestion({ ...Question, questionType: value })} />
       </Group>
       <Group>
-        <FormInput label="Class" value={className} setValue={(value) => setQuestion({ ...Question, class: value })} />
-        <FormInput label="Level" value={level} setValue={(value) => setQuestion({ ...Question, level: value })} />
+        <LabeledSelect label="Class" options={CLASSES} value={className} onChange={(value) => setQuestion({ ...Question, class: value })} />
+        <LabeledSelect label="Level" options={LEVELS} value={level} onChange={(value) => setQuestion({ ...Question, level: value })} />
       </Group>
       <LabeledSelect label="Category" options={Object.keys(Categories)} value={category} onChange={(value) => setQuestion({ ...Question, category: value, subcategory: [""] })} />
       {subcategory.map((sub, i) =>
