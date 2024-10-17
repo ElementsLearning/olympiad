@@ -5,7 +5,7 @@ export const useQuestions = (): [QuestionType[], React.Dispatch<React.SetStateAc
 
   useEffect(() => {
     const fetchQuestions = async () => {
-      const response = await fetch("/api/question/all")
+      const response = await fetch("/api/question/all", { cache: 'no-store' })
       const { questions } = await response.json()
       setQuestions(questions)
     }

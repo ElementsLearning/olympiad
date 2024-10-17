@@ -5,7 +5,7 @@ export const useCategories = (): [Record<string, string[]>, React.Dispatch<React
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const response = await fetch("/api/category/all")
+      const response = await fetch("/api/category/all", { cache: 'no-store'})
       const { categories: categoriesArray } = await response.json()
       console.log(categoriesArray)
 

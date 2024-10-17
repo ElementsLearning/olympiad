@@ -55,8 +55,11 @@ export const generateQuestions = (allQuestions: QuestionType[], level: string, b
   }))
 
   const toReturn = questionBuckets.reduce((acc: QuestionType[], bucket) => {
-    return acc.concat(pickRandom(bucket.questions, bucket.count))
+    // return acc.concat(pickRandom(bucket.questions, bucket.count))
+    return acc.concat(bucket.questions)
   }, [])
+
+  console.log(toReturn)
 
   return toReturn
 }
@@ -81,6 +84,34 @@ export const getAllBucketCounts = (allQuestions: QuestionType[], Categories: Rec
 
     return acc
   }, {})
+
+  return toReturn
+}
+
+type AllBucketType = Record<string, Record<string, Record<string, QuestionType[]>>>
+
+export const generateAllBuckets = (allQuestions: QuestionType[], Categories: Record<string, string[]>): AllBucketType => {
+  const toReturn = allQuestions.reduce((acc: AllBucketType, question) => {
+    const { category, subcategory, level } = question
+
+    if (!acc[level]) {
+      acc[level] = {}
+    }
+
+    if (!acc[level][category]) {
+      acc[level][category] = {}
+    }
+
+    for (const sub of subcategory) {
+      if (!acc[level][category][sub]) {
+        acc[level][category][sub] = [question]
+      }
+      acc[level][category][sub] = [...acc[level][category][sub], question]
+    }
+
+    
+    return acc
+  }, {}) 
 
   return toReturn
 }
