@@ -2,6 +2,8 @@ import connectMongo from "@/lib/connectMongo"
 import { NextResponse } from "next/server"
 import Category from "@/models/CategoryModel"
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
 
   try {

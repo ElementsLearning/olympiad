@@ -2,6 +2,7 @@ import connectMongo from "@/lib/connectMongo"
 import { NextResponse } from "next/server"
 import Question from "@/models/QuestionModel"
 
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
 
