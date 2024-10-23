@@ -14,9 +14,10 @@ type QuestionFormProps = {
   Categories: Record<string, string[]>
   onSubmit: (Question: QuestionType) => Promise<boolean>
   editing?: boolean
+  filtering?: boolean
 }
 
-export const QuestionForm: React.FC<QuestionFormProps> = ({Question=defaultQuestion, setQuestion, Categories, onSubmit, editing=false}) => {
+export const QuestionForm: React.FC<QuestionFormProps> = ({Question=defaultQuestion, setQuestion, Categories, onSubmit, editing=false, filtering=false}) => {
   
   const { bookName, chapter, exercise, questionNumber, level, questionType, class: className, category, subcategory } = Question
 
@@ -27,10 +28,10 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({Question=defaultQuest
   const [success, setSuccess] = useState<string>("");
 
   const handleSubmit = async () => {
-    const status = isQuestionComplete(Question)
+    const status = filtering ? {isComplete: true, error: ""} : isQuestionComplete(Question)
     if (status.isComplete) {
       if (await onSubmit(Question)) {
-        setSuccess(`Question ${editing ? "edited" : "added"} successfully`)
+        setSuccess(`Question ${filtering ? "filtered" : editing ? "edited" : "added"} successfully`)
       }
     } else {
       setError(status.error)
@@ -55,7 +56,7 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({Question=defaultQuest
 
   return (
     <div className="w-full max-w-[750px] bg-neutral-900 p-4 rounded-lg flex flex-col gap-2">
-      <h1 className="font-mono font-bold text-center text-2xl">{`${editing ? "Edit" : "Add"} Question`}</h1>
+      <h1 className="font-mono font-bold text-center text-2xl">{`${filtering ? "Filter" : editing ? "Edit" : "Add"} Question`}</h1>
       <FormInput label="Book Name" value={bookName} setValue={(value) => setQuestion({ ...Question, bookName: value })} />
       <Group>
         <FormInput label="Chapter" value={chapter} setValue={(value) => setQuestion({ ...Question, chapter: value })} />

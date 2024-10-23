@@ -13,6 +13,7 @@ export const defaultQuestion: QuestionType = {
   class: "",
   category: "",
   subcategory: [""],
+  date: ""
 }
 
 export const headers: Record<string, keyof QuestionType> = {
@@ -25,4 +26,5 @@ export const headers: Record<string, keyof QuestionType> = {
   "Class": "class",
   "Category": "category",
   "Subcategories": "subcategory",
+  "Date": "date"
 }

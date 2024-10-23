@@ -1,5 +1,4 @@
 import { OptionsPopover } from "@/components/OptionsPopover"
-import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { headers } from "@/lib/constants"
@@ -10,9 +9,11 @@ import React, { useEffect, useState } from "react"
 type QuestionTableProps = {
   Categories: Record<string, string[]>
   filterWord: string
+  setFilteredCount: (count: number) => void
+  filterQuestion: QuestionType | null
 }
 
-const QuestionTableComponent: React.FC<QuestionTableProps> = ({Categories, filterWord}) => {
+const QuestionTableComponent: React.FC<QuestionTableProps> = ({Categories, filterWord, setFilteredCount, filterQuestion}) => {
 
   const [questions, setQuestions] = useQuestions()
   const [filteredQuestions, setFilteredQuestions] = useState<QuestionType[]>([])
@@ -34,12 +35,33 @@ const QuestionTableComponent: React.FC<QuestionTableProps> = ({Categories, filte
   }
 
   useEffect(() => {
-    if (filterWord) {
-      setFilteredQuestions(filterQuestions(questions, filterWord))
+    if (filterQuestion) {
+      const filtered = questions.filter(q => {
+        const { bookName, chapter, questionNumber, questionType, subcategory, category, class: className, date, exercise, level } = q
+        return (
+          (!filterQuestion.bookName || bookName.toLowerCase().includes(filterQuestion.bookName.toLowerCase())) &&
+          (!filterQuestion.chapter || chapter.toLowerCase().includes(filterQuestion.chapter.toLowerCase())) &&
+          (!filterQuestion.questionNumber || questionNumber.toLowerCase().includes(filterQuestion.questionNumber.toLowerCase())) &&
+          (!filterQuestion.questionType || questionType.toLowerCase().includes(filterQuestion.questionType.toLowerCase())) &&
+          (!filterQuestion.category || category.toLowerCase().includes(filterQuestion.category.toLowerCase())) &&
+          (!filterQuestion.class || className.toLowerCase().includes(filterQuestion.class.toLowerCase())) &&
+          (!filterQuestion.date || date.toLowerCase().includes(filterQuestion.date.toLowerCase())) &&
+          (!filterQuestion.exercise || exercise.toLowerCase().includes(filterQuestion.exercise.toLowerCase())) &&
+          (!filterQuestion.level || level.toLowerCase().includes(filterQuestion.level.toLowerCase())) &&
+          ((filterQuestion.subcategory.length === 1 && filterQuestion.subcategory[0] === '') || filterQuestion.subcategory.length === 0 || subcategory.some(s => filterQuestion.subcategory.includes(s)))
+        )
+      })
+      setFilteredQuestions(filtered)
+      setFilteredCount(filtered.length)
+    } else if (filterWord) {
+      const filtered = filterQuestions(questions, filterWord)
+      setFilteredQuestions(filtered)
+      setFilteredCount(filtered.length)
     } else {
       setFilteredQuestions(questions)
+      setFilteredCount(questions.length)
     }
-  }, [filterWord, questions])
+  }, [filterQuestion, filterWord, questions])
 
   useEffect(() => {
 
@@ -47,6 +69,8 @@ const QuestionTableComponent: React.FC<QuestionTableProps> = ({Categories, filte
 
     if (sortKey === 'subcategory') {
       setFilteredQuestions([...filteredQuestions].sort((a, b) => sortDirection * a[sortKey].join(",").localeCompare(b[sortKey].join(","))))
+    } else if (sortKey === 'date') {
+      setFilteredQuestions([...filteredQuestions].sort((a, b) => sortDirection * (new Date(a[sortKey]).getTime() - new Date(b[sortKey]).getTime())))
     } else if (sortKey) {
       setFilteredQuestions([...filteredQuestions].sort((a, b) => sortDirection * a[sortKey].localeCompare(b[sortKey])))
     } else {
@@ -83,7 +107,7 @@ const QuestionTableComponent: React.FC<QuestionTableProps> = ({Categories, filte
   }
   
   return (
-    <ScrollArea className="h-[calc(100vh-82px)]">
+    <ScrollArea className="h-[calc(100vh-180px)] sm:h-[calc(100vh-124px)]">
       <Table>
         <TableCaption>List of All Questions</TableCaption>
         <TableHeader>
@@ -119,6 +143,7 @@ const QuestionTableComponent: React.FC<QuestionTableProps> = ({Categories, filte
               <TableCell>{question.class}</TableCell>
               <TableCell>{question.category}</TableCell>
               <TableCell>{question.subcategory.join(", ")}</TableCell>
+              <TableCell className="whitespace-nowrap">{question.date}</TableCell>
               <TableCell>
                 <OptionsPopover 
                   Categories={Categories} 

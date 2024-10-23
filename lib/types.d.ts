@@ -7,6 +7,7 @@ type QuestionTextType = {
   level: string
   questionType: string
   class: string
+  date: string
 }
 
 type CategoryType = {
